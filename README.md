@@ -1,0 +1,1 @@
+# Ecodiversidad-Actividad-en-R---Variacion-Adaptiva-
