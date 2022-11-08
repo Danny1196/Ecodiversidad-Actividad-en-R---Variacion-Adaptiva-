@@ -1,0 +1,143 @@
+---
+title: "Evaluando la selecion positiva en los CDS de Sebastes"
+author: "Daniel Olivares-Zambrano"
+date: "8/22/2022"
+output: html_document
+---
+
+##Pregunta por explorar 
+
+En este modulo vamos a explorar dos preguntas sobre la evolucion de Sebastes spp. 
+
+Dentro de especies hermanas de Sebastes como difiere la selecion positiva o negativa?
+
+Y 
+
+Entre pares de especies hermanas de Sebastes como difiere la selecion positiva o negativa?
+
+Para este modula vamos a:
+Comparar el numero de CDS que esta en selecion positiva y los CDS que estan en selecion negativa dentro de cada par de especie
+
+Visualizar los CDS que estan en selecion negativa o positiva
+
+Visualizar los datos de dN, dS y dN/dS para los dos pares de especies hermanas de Sebastes spp. 
+
+Hacer T.test para ver si hay significado estatistico o diferencia estatistico entre lo promedios de dN, dS y dN.ds para los dos pares de especies hermanas de Sebastes spp. 
+
+
+Paquetes para instalacion antes de procedir con el codigo
+```{r}
+
+install.packages("ggplot2")
+install.packages("tidyr")
+install.packages("dplyr")
+
+library("ggplot2") #Para contruyir diagramas de tus datos
+library("tidyr") 
+library("dplyr") #Para manipular los datos en varios tablas o en el formato que usted quiera
+
+```
+
+#Para subir los datos puedes ir a tu directorio directamente creando una tabla que R puede entender "tus datos -> read.table("C:/tus datos")
+
+#Otra manera para subir tus datos en tu "Environment". Ve a "Load Workspace" y puedes subir documentos directamente de tu computador. Elige "Readr from text" y sube tu documento. Cuando readr te da opciones para modificar tu tabla de datos emprime "Whitespace" para tu delimeter.  
+
+```{r}
+
+cmrc_todosdatos <- read.csv("C:/Users/danie/OneDrive/Desktop/Education-Outreach/EcoDiversidad/Adaptacion/Complete_dNdS_Data.csv")
+
+cm <- cmrc_todosdatos %>% filter(Species.Pair == 'S. crocotulus-S. miniatus')
+
+
+rc <- cmrc_todosdatos %>% filter(Species.Pair == 'S. chlorostictus-S. rosenblatti')
+
+```
+
+
+```{r}
+
+dfcm_dNdS <- data.frame(cm$dN.dS)
+
+dfcm_dNdS %>% filter_all(all_vars(.>1.0))
+dfcm_dNdS %>% filter_all(all_vars(.<1.0))
+
+dfrc_dNdS <- data.frame(rc$dN.dS)
+
+dfrc_dNdS %>% filter_all(all_vars(.>1.0))
+dfrc_dNdS %>% filter_all(all_vars(.<1.0))
+
+
+#Cuantos CDS en los dos pares de especies estan en selection positiva o en selecion negativa
+
+#Un hypotesis de selecion dentro de especiacion es que especies que estan se formaron
+#en nuevos especies mas recientemente deberian tener mas selecion positiva contribuyendo a su evolucion. Vistes esto con los CDS de los dos pares de especie?
+```
+GGplots de datos dS y dN - Visualizando CDS que esta en selecion positiva y en 
+selecion negativa (Heras et al. 2015)
+
+La idea es que podemos ver los escenarios cuando dN > dS por en un CDS o dS > dN en 
+un CDS. En el primer escenario tenemos selecion negativa sobre
+ese CDS y en el segundo escenario tenemos selecion positiva sobre ese CDS. Si dS = dN, eso es un escenario de selecion neutral en ese CDS. 
+
+En terminos de visualizacion, podemos visualar estos escanrios con un "plot" de x/y y 
+le agregamos un slope = 1 y un intercept = 0. Con esta linea podemos ver si valuaciones
+de dN y dS de todos los CDS estan sobre la linea, abajo la linea o dentro de la linea.
+
+Si esta sobre la linea eso es un escenario de dN > dS
+Si estan abajo de la linea eso es un escenario de dS > dN
+Y si estan entre la linea eso es un escenario de dS = dN
+
+
+```{r}
+
+
+crp <- ggplot(rc, aes(dS, dN)) + geom_point(colour = "coral2")
+crp
+
+
+crp <- ggplot(rc, aes(dS, dN)) + geom_point(colour = "coral2") + labs(title = "*S. chlorostictus-S. rosenblatti* dNdS Plot", y = "dN", x = "dS") + xlim(0, 0.11) + ylim(0, 0.11) + geom_abline(intercept = 0, slope = 1, col = "blue") 
+
+crp
+
+
+cmp <- ggplot(cm, aes(dS, dN)) + geom_point(colour = "goldenrod3")
+cmp
+
+cmp <- ggplot(cm, aes(dS, dN)) + geom_point(colour = "goldenrod3") + labs(title = "*S. crocotulus-S. miniatus* dNdS Plot", y = "dN", x = "dS") +  xlim(0, 0.11) + ylim(0, 0.11) + geom_abline(intercept = 0, slope = 1, col = "blue") 
+cmp 
+
+
+```
+
+#Que puedes notar de la propagacion de datos? 
+
+#Respuesta - hay "outliers" (find translation) en la propagacion de dN y dS. Siempre va ver, pero con estos outliers no puedes ver la majoria de tus datos. 
+
+#vamos excluir labs
+
+
+
+Comparasiones
+```{r}
+
+
+ggplot(cmrc_todosdatos, aes(x = Species.Pair, y = dN.dS, color = Species.Pair))+ geom_violin(fill = "azure3") + ggtitle("dN/dS Ratios Violin Plot") + labs(y = "dN/dS Ratios", x = "Par de Especie")  +  scale_x_discrete(labels = expression(italic('S. chlorostictus-S. rosenblatti'), italic('S. crocotulus-S. miniatus'))) + scale_color_discrete(type = c("coral2", "goldenrod3"), labels = expression(italic('S. chlorostictus-S. rosenblatti'), italic('S. crocotulus-S. miniatus')))
+
+ggplot(cmrc_todosdatos, aes(x = Species.Pair, y = dS, color = Species.Pair)) + geom_violin(fill = "gold") + ggtitle("dS Violin Plot") + labs(y = "dS", x = "Species Pair") +  scale_x_discrete(labels = expression(italic('S. chlorostictus-S. rosenblatti'), italic('S. crocotulus-S. miniatus'))) + scale_color_discrete(type = c("coral2", "goldenrod3"), labels = expression(italic('S. chlorostictus-S. rosenblatti'), italic('S. crocotulus-S. miniatus'))) #+ ylim(0, 3.0)
+
+ggplot(cmrc_todosdatos, aes(x = Species.Pair, y = dN, color = Species.Pair)) + geom_violin(fill = "grey11") + ggtitle("dN Violin Plot") + labs(y = "dN", x = "Species Pair") +  scale_x_discrete(labels = expression(italic('S. chlorostictus-S. rosenblatti'), italic('S. crocotulus-S. miniatus'))) + scale_color_discrete(type = c("coral2", "goldenrod3"), labels = expression(italic('S. chlorostictus-S. rosenblatti'), italic('S. crocotulus-S. miniatus'))) #+ ylim(0, 3.0)
+
+
+```
+
+T.tests
+```{r}
+
+t.test(chl_ros_dNdScal3$`dN/dS`, croc_mini_dNdScal3$`dN/dS`)
+t.test(chl_ros_dNdScal3$`dS`, croc_mini_dNdScal3$`dS`)
+t.test(chl_ros_dNdScal3$`dN`, croc_mini_dNdScal3$`dN`)
+
+```
+
+
+
