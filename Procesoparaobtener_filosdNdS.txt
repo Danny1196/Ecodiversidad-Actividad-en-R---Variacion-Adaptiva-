@@ -1,0 +1,75 @@
+##Importante saber tipos de filos
+
+.fa o .fasta - Filo estilo fasta que contiene todo los nucleotides de el organismo, cromosoma, o gen de interes.
+.sam o .bam - Filo de "Single Alignment Map" que contiene todas las sequencias de nucleotides que estan asignados a un genoma de referencia. El estilo ".bam" tiene la misma informacion pero es interpretado en binario por tu computador.
+.vcf o .bcf - Filo de "Variant Call Format" que contiene las variaciones de sequencias de genes. El ".bcf" tiene la misma informacion pero es interpretado en binario por tu computador.
+.pl - Un programa escrito en perl para analysis bioinformatico.
+.sh - Un programa escrito en java para analysis bioinformatico.
+.bed - Filo que contiene informacion genomica regional como coordenadas y anotados asociados. 
+.gff - Filo que describe funciones genomicos en manera genera. Por ejemplo, tiene informacion de genes, sequencias codigas, exomas, de un genoma. 
+
+awk - Un programa que es parte interna de cada computador. Awk utiliza varias funciones para organizar y manipular filos dentro de tu compatador. 
+
+####Produce fa (fasta) filos sin indels (para obtener solo exomas)
+
+##Convierte tu el bam filo de el especie de interes con el fasta del genoma de referencia en. Esto convierte a resulta en un filo de "variant call format" para tu especie de interes. 
+samtools mpileup -C50 -uf ref.fa aln.bam | bcftools call -c sp_calls.norm.bcf
+
+##Quitale los indels al bcf de tu especie de interes 
+bcftools filter --IndelGap 5 sp_calls.norm.bcf -Oz -o sp_calls.norm.flt-indels.vcf.gz
+
+zcat chl_calls.norm.fit-indels.vcf.gz | grep -v INDEL > chl_calls.norm.no-indels.vcf
+
+gzip chl_calls.norm.no-indels.vcf
+
+tabix chl_calls.norm.no-indels.vcf.gz
+
+cat genome.fasta | bcftools consensus
+ chl_calls.norm.no-indels.vcf.gz > sp_consensus.fa
+
+##GFF to FASTA
+##Obtener en - https://github.com/minillinim/gff2fasta
+./gff2fasta.pl -gff filo.gff - fasta ref.fasta -out out.fasta
+
+perl Super Awesome pl
+Usa super_awesome5CSJ_.pl scripts para obtener lista de genes para el dn/ds analysis.  
+
+perl super_awesome5CSJ_.pl sp_consensus.fa
+ 
+cat sp1_consensus.fa sp2_consensus.fa > merged_sp.fasta
+
+##Los filos necesitan estar organizados haci para calcular dN/dS
+##El fasta que contiene informacion sobre dos especies tambien no debe de tener "linebreaks" para que no falle el calculador dN/dS.
+>sp1_gen1
+AAAAAA
+>sp2_gen1
+TTTTTTT
+
+
+####Java dNdScalculator
+
+sh runDnDs.sh merged_sp.fasta
+
+
+-Output
+
+merged_sp_dNdS.txt
+
+
+####Cuando obtiene toda la informacion de dN/dS sobre tus especies de interes, se puede analizar los datos en R. 
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
